@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8"/>
+  <title>تحلیل‌کلاب - پلتفرم معاملاتی هوشمند</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <!-- Lightweight Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      padding:0;
+      direction:rtl;
+      font-family:system-ui,sans-serif;
+      background:#020617;
+      color:#e5e7eb;
+      overflow:hidden;
+    }
+    body.light{
+      background:#f3f4f6;
+      color:#111827;
+    }
+
+    .app{display:flex;flex-direction:column;height:100vh;}
+
+    /* ---------- TOPBAR ---------- */
+    .topbar{
+      height:58px;
+      padding:8px 16px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:rgba(15,23,42,0.95);
+      border-bottom:1px solid rgba(148,163,184,.3);
+      backdrop-filter:blur(8px);
+      z-index:30;
+      color:#e5e7eb;
+    }
+    body.light .topbar{
+      background:rgba(243,244,246,0.92);
+      color:#111827;
+      border-color:#cbd5e1;
+    }
+
+    .logo{display:flex;align-items:center;gap:8px;}
+    .logo img{width:32px;height:32px;border-radius:50%;}
+    .logo-title{
+      font-weight:800;font-size:16px;
+      background:linear-gradient(to left,#22c55e,#0ea5e9);
+      -webkit-background-clip:text;
+      color:transparent;
+    }
+    .logo-sub{font-size:11px;color:#94a3b8;}
+    body.light .logo-sub{color:#6b7280;}
+
+    .input{
+      padding:5px 10px;
+      border-radius:10px;
+      border:1px solid #1e293b;
+      background:#0f172a;
+      color:#e5e7eb;
+      outline:none;
+    }
+    body.light .input{
+      background:#ffffff;
+      color:#111827;
+      border-color:#cbd5e1;
+    }
+
+    .btn{
+      padding:6px 10px;
+      border-radius:10px;
+      border:none;
+      background:#1e293b;
+      color:#e5e7eb;
+      font-size:12px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      transition:.15s;
+    }
+    .btn:hover{background:#334155;}
+    .btn-primary{
+      background:linear-gradient(to left,#22c55e,#0ea5e9);
+      color:#022c22;
+      font-weight:600;
+    }
+    body.light .btn:not(.btn-primary){
+      background:#e5e7eb;
+      color:#111827;
+    }
+
+    .content{
+      flex:1;
+      display:flex;
+      overflow:hidden;
+      position:relative;
+    }
+
+    /* ---------- TOOLBAR ---------- */
+    .toolbar{
+      padding:6px 12px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:#0f172a;
+      border-bottom:1px solid #1e293b;
+      z-index:25;
+      color:#e5e7eb;
+    }
+    body.light .toolbar{
+      background:#e5e7eb;
+      border-color:#cbd5e1;
+      color:#111827;
+    }
+
+    .menu-pop{
+      position:absolute;
+      top:38px;
+      padding:6px;
+      border-radius:10px;
+      background:#020617f5;
+      border:1px solid #1e293b;
+      display:none;
+      gap:6px;
+      z-index:60;
+    }
+    body.light .menu-pop{
+      background:#f9fafb;
+      border-color:#cbd5e1;
+    }
+
+    .tool-icon{
+      width:30px;
+      height:30px;
+      border-radius:8px;
+      border:1px solid #334155;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      font-size:16px;
+      color:#e5e7eb;
+      background:#020617;
+    }
+    body.light .tool-icon{
+      background:#ffffff;
+      color:#111827;
+      border-color:#cbd5e1;
+    }
+    .tool-icon.active{
+      background:#0ea5e9;
+      color:#020617;
+    }
+
+    .indicator-item{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 6px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:12px;
+    }
+    .indicator-item:hover{
+      background:#1e293b;
+    }
+    body.light .indicator-item:hover{
+      background:#e5e7eb;
+    }
+
+    /* ---------- WATCHLIST ---------- */
+    #watchToggle{
+      position:absolute;
+      right:0;
+      top:110px;
+      padding:5px 7px;
+      background:#0ea5e9;
+      color:white;
+      border-radius:0 8px 8px 0;
+      cursor:pointer;
+      z-index:40;
+      font-size:14px;
+    }
+    #watchlist-panel{
+      width:220px;
+      background:#020617;
+      border-left:1px solid #1e293b;
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      transition:.25s;
+      overflow-y:auto;
+    }
+    #watchlist-panel.collapsed{
+      width:0;
+      opacity:0;
+      padding:0;
+      border:none;
+    }
+    body.light #watchlist-panel{
+      background:#f9fafb;
+      border-color:#e5e7eb;
+    }
+    .watch-item{
+      padding:6px 8px;
+      border-radius:8px;
+      background:#1e293b;
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      cursor:pointer;
+      color:#e5e7eb;
+    }
+    .watch-item span:last-child{
+      margin-right:6px;
+      cursor:pointer;
+    }
+    body.light .watch-item{
+      background:#e5e7eb;
+      color:#111827;
+    }
+
+    /* ---------- CHART AREA ---------- */
+    #chart-area{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      overflow:hidden;
+    }
+    #mainChart{
+      flex:1;
+      margin:10px;
+      border-radius:14px;
+      overflow:hidden;
+      background:#020617;
+    }
+    body.light #mainChart{
+      background:#ffffff;
+    }
+
+    .indicator{
+      height:150px;
+      margin:4px 10px 8px;
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid #1e293b;
+      background:#0f172a;
+      display:none;
+    }
+    body.light .indicator{
+      background:#ffffff;
+      border-color:#cbd5e1;
+    }
+
+    /* ---------- REPLAY PANEL ---------- */
+    #replayPanel{
+      position:absolute;
+      left:10px;
+      right:10px;
+      top:10px;
+      height:44px;
+      border-radius:10px;
+      background:#020617f2;
+      border:1px solid #1e293b;
+      display:none;
+      align-items:center;
+      padding:4px 10px;
+      gap:8px;
+      font-size:12px;
+      z-index:50;
+      color:#e5e7eb;
+    }
+    body.light #replayPanel{
+      background:#f9fafb;
+      border-color:#cbd5e1;
+      color:#111827;
+    }
+    #replayPanel button,#replayPanel select{
+      font-size:11px;
+      border-radius:6px;
+      border:none;
+      padding:3px 8px;
+    }
+    #replayPanel button{
+      background:#1e293b;
+      color:#e5e7eb;
+      cursor:pointer;
+    }
+    body.light #replayPanel button{
+      background:#e5e7eb;
+      color:#111827;
+    }
+    #rpRange{
+      flex:1;
+    }
+
+    /* ---------- MULTI WINDOWS ---------- */
+    #multiOverlay{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      display:none;
+      z-index:70;
+    }
+    .mini-window{
+      position:absolute;
+      width:260px;
+      height:160px;
+      background:#020617;
+      border-radius:12px;
+      border:1px solid #1e293b;
+      overflow:hidden;
+      pointer-events:auto;
+      box-shadow:0 8px 40px rgba(0,0,0,.7);
+      color:#e5e7eb;
+    }
+    .mini-header{
+      height:24px;
+      background:#111827;
+      color:#e5e7eb;
+      font-size:11px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:2px 6px;
+      cursor:move;
+      user-select:none;
+      gap:6px;
+    }
+    .mini-title{display:flex;align-items:center;gap:4px;}
+    .mini-symbol{
+      width:80px;
+      border-radius:6px;
+      border:1px solid #334155;
+      background:#020617;
+      color:#e5e7eb;
+      font-size:11px;
+      padding:1px 4px;
+      outline:none;
+    }
+    .mini-resize{
+      position:absolute;
+      right:6px;
+      bottom:6px;
+      width:12px;
+      height:12px;
+      border-radius:4px;
+      background:#1e293b;
+      cursor:se-resize;
+    }
+
+    /* ---------- DEMO PANEL ---------- */
+    #demoPanel{
+      position:absolute;
+      left:10px;
+      right:10px;
+      bottom:10px;
+      border-radius:12px;
+      background:#020617f5;
+      border:1px solid #1e293b;
+      padding:8px 10px;
+      font-size:12px;
+      display:none;
+      z-index:55;
+      color:#e5e7eb;
+    }
+    #demoPanel header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:6px;
+    }
+    #demoPanel .demo-actions{
+      display:flex;
+      gap:6px;
+      margin-bottom:6px;
+    }
+    #demoTrades{
+      max-height:120px;
+      overflow-y:auto;
+      border-top:1px solid #1e293b;
+      padding-top:4px;
+      font-size:11px;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo">
+      <img src="logo.png" alt="">
+      <div>
+        <div class="logo-title">تحلیل‌کلاب</div>
+        <div class="logo-sub">AI • Signals • Live Trading</div>
+      </div>
+    </div>
+
+    <span>نماد:</span>
+    <input id="symbolInput" class="input" value="BTCUSDT" style="width:110px">
+
+    <span>تایم‌فریم:</span>
+    <select id="intervalInput" class="input">
+      <option value="1m">1m</option>
+      <option value="5m">5m</option>
+      <option value="10m">10m</option>
+      <option value="15m">15m</option>
+      <option value="30m" selected>30m</option>
+      <option value="1h">1h</option>
+      <option value="4h">4h</option>
+      <option value="1d">1D</option>
+    </select>
+
+    <button id="reloadBtn" class="btn btn-primary">لود چارت</button>
+
+    <button id="themeBtn" class="btn">🌓 تم</button>
+
+    <div style="flex:1"></div>
+    <div id="status" style="font-size:11px;color:#38bdf8;"></div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <button id="toolMenuBtn" class="btn">✏️ ابزار تحلیلی</button>
+    <div id="toolMenu" class="menu-pop" style="right:10px;">
+      <div class="tool-icon" data-tool="none" title="انتخاب">🖱️</div>
+      <div class="tool-icon" data-tool="hline" title="خط افقی">━</div>
+      <div class="tool-icon" data-tool="trend" title="روند">╱</div>
+      <div class="tool-icon" data-tool="box" title="باکس">▢</div>
+      <div class="tool-icon" data-tool="fib" title="فیبو">Φ</div>
+      <div class="tool-icon" data-tool="ruler" title="خط‌کش">↕</div>
+    </div>
+
+    <button id="indiMenuBtn" class="btn">📊 اندیکاتورها</button>
+    <div id="indiMenu" class="menu-pop" style="right:140px;flex-direction:column;">
+      <div class="indicator-item">
+        <input type="checkbox" id="macdChk"> <label for="macdChk">MACD</label>
+      </div>
+      <div class="indicator-item">
+        <input type="checkbox" id="rsiChk"> <label for="rsiChk">RSI</label>
+      </div>
+    </div>
+
+    <button id="multiBtn" class="btn">📈 مولتی‌چارت</button>
+    <button id="replayBtn" class="btn btn-primary">🎬 Replay</button>
+    <button id="demoLiveBtn" class="btn">🎮 دمو (Live)</button>
+    <button id="demoReplayBtn" class="btn">🎮 دمو (Replay)</button>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content">
+    <div id="watchToggle">⟨</div>
+
+    <!-- WATCHLIST -->
+    <div id="watchlist-panel">
+      <div style="display:flex;gap:6px;">
+        <input id="watchAddInput" class="input" placeholder="BTCUSDT" style="flex:1">
+        <button id="watchAddBtn" class="btn btn-primary">+</button>
+      </div>
+      <div id="watchItems"></div>
+    </div>
+
+    <!-- CHART AREA -->
+    <div id="chart-area">
+      <div id="replayPanel">
+        <button id="rpExit">⏹ خروج</button>
+        <button id="rpBack">⏮</button>
+        <button id="rpPlay">▶</button>
+        <button id="rpPause">⏸</button>
+        <button id="rpNext">⏭</button>
+        <span>| سرعت:</span>
+        <select id="rpSpeed">
+          <option value="1">1x</option>
+          <option value="2">2x</option>
+          <option value="4">4x</option>
+          <option value="8">8x</option>
+        </select>
+        <span>| موقعیت:</span>
+        <input id="rpRange" type="range" min="10" max="100" value="10">
+      </div>
+
+      <div id="mainChart"></div>
+      <div id="macdChart" class="indicator"></div>
+      <div id="rsiChart" class="indicator"></div>
+
+      <div id="demoPanel">
+        <header>
+          <strong>حالت دمو: <span id="demoModeTitle">خاموش</span></strong>
+          <button id="demoClose" class="btn" style="padding:2px 6px;font-size:11px;">✕</button>
+        </header>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <div>بالانس: <span id="demoBalance">$10,000</span></div>
+          <div>پوزیشن باز: <span id="demoPosition">ندارد</span></div>
+          <div>PNL لحظه‌ای: <span id="demoPNL">0</span></div>
+        </div>
+        <div class="demo-actions">
+          <button id="demoBuy" class="btn btn-primary">خرید (Long)</button>
+          <button id="demoSell" class="btn btn-primary">فروش (Short)</button>
+          <button id="demoClosePos" class="btn">بستن پوزیشن</button>
+        </div>
+        <div id="demoTrades"></div>
+      </div>
+
+      <div id="multiOverlay"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ====== DOM refs ====== */
+  const symbolInput   = document.getElementById('symbolInput');
+  const intervalInput = document.getElementById('intervalInput');
+  const reloadBtn     = document.getElementById('reloadBtn');
+  const statusEl      = document.getElementById('status');
+
+  const toolMenuBtn   = document.getElementById('toolMenuBtn');
+  const toolMenu      = document.getElementById('toolMenu');
+  const toolIcons     = toolMenu.querySelectorAll('.tool-icon');
+
+  const indiMenuBtn   = document.getElementById('indiMenuBtn');
+  const indiMenu      = document.getElementById('indiMenu');
+  const macdChk       = document.getElementById('macdChk');
+  const rsiChk        = document.getElementById('rsiChk');
+
+  const watchToggle   = document.getElementById('watchToggle');
+  const watchPanel    = document.getElementById('watchlist-panel');
+  const watchAddInput = document.getElementById('watchAddInput');
+  const watchAddBtn   = document.getElementById('watchAddBtn');
+  const watchItems    = document.getElementById('watchItems');
+
+  const mainChartDiv  = document.getElementById('mainChart');
+  const macdDiv       = document.getElementById('macdChart');
+  const rsiDiv        = document.getElementById('rsiChart');
+
+  const replayBtn     = document.getElementById('replayBtn');
+  const replayPanel   = document.getElementById('replayPanel');
+  const rpExit        = document.getElementById('rpExit');
+  const rpBack        = document.getElementById('rpBack');
+  const rpPlay        = document.getElementById('rpPlay');
+  const rpPause       = document.getElementById('rpPause');
+  const rpNext        = document.getElementById('rpNext');
+  const rpSpeed       = document.getElementById('rpSpeed');
+  const rpRange       = document.getElementById('rpRange');
+
+  const multiBtn      = document.getElementById('multiBtn');
+  const multiOverlay  = document.getElementById('multiOverlay');
+
+  const demoLiveBtn   = document.getElementById('demoLiveBtn');
+  const demoReplayBtn = document.getElementById('demoReplayBtn');
+  const demoPanel     = document.getElementById('demoPanel');
+  const demoClose     = document.getElementById('demoClose');
+  const demoModeTitle = document.getElementById('demoModeTitle');
+  const demoBalanceEl = document.getElementById('demoBalance');
+  const demoPositionEl= document.getElementById('demoPosition');
+  const demoPNLEl     = document.getElementById('demoPNL');
+  const demoTradesEl  = document.getElementById('demoTrades');
+  const demoBuy       = document.getElementById('demoBuy');
+  const demoSell      = document.getElementById('demoSell');
+  const demoClosePos  = document.getElementById('demoClosePos');
+
+  /* ====== Theme ====== */
+  let isDark = true;
+  const THEME_KEY='tahlil_theme_final';
+  try{
+    const s=localStorage.getItem(THEME_KEY);
+    if(s==='light'){
+      isDark=false;
+      document.body.classList.add('light');
+    }
+  }catch(e){}
+
+  function baseChartOptions(){
+    return {
+      layout:{
+        background:{color:isDark?'#020617':'#ffffff'},
+        textColor:isDark?'#e5e7eb':'#111827',
+      },
+      grid:{
+        vertLines:{color:isDark?'#020617':'#e5e7eb'},
+        horzLines:{color:isDark?'#020617':'#e5e7eb'},
+      },
+      rightPriceScale:{borderColor:isDark?'#1e293b':'#cbd5e1'},
+      timeScale:{timeVisible:true,secondsVisible:false},
+    };
+  }
+  function indiChartOptions(){
+    return {
+      layout:{
+        background:{color:isDark?'#0f172a':'#ffffff'},
+        textColor:isDark?'#e5e7eb':'#111827',
+      },
+      grid:{
+        vertLines:{color:isDark?'#1e293b':'#e5e7eb'},
+        horzLines:{color:isDark?'#1e293b':'#e5e7eb'},
+      },
+      rightPriceScale:{borderColor:isDark?'#1e293b':'#cbd5e1'},
+      timeScale:{timeVisible:true,secondsVisible:false},
+    };
+  }
+
+  document.getElementById('themeBtn').addEventListener('click',()=>{
+    isDark=!isDark;
+    document.body.classList.toggle('light',!isDark);
+    try{localStorage.setItem(THEME_KEY,isDark?'dark':'light');}catch(e){}
+    applyChartsTheme();
+    multiWindows.forEach(w=>w.chart.applyOptions(baseChartOptions()));
+  });
+
+  /* ====== Main / Indicator charts ====== */
+  const mainChart = LightweightCharts.createChart(mainChartDiv, baseChartOptions());
+  const candleSeries = mainChart.addCandlestickSeries({
+    upColor:'#22c55e',downColor:'#ef4444',
+    borderUpColor:'#22c55e',borderDownColor:'#ef4444',
+    wickUpColor:'#22c55e',wickDownColor:'#ef4444'
+  });
+
+  const macdChart = LightweightCharts.createChart(macdDiv, indiChartOptions());
+  const macdLine   = macdChart.addLineSeries({color:'#22c55e',lineWidth:1});
+  const macdSignal = macdChart.addLineSeries({color:'#f97316',lineWidth:1});
+  const macdHist   = macdChart.addHistogramSeries({color:'#38bdf8'});
+
+  const rsiChart = LightweightCharts.createChart(rsiDiv, indiChartOptions());
+  const rsiLine  = rsiChart.addLineSeries({color:'#a855f7',lineWidth:1});
+
+  function applyChartsTheme(){
+    mainChart.applyOptions(baseChartOptions());
+    macdChart.applyOptions(indiChartOptions());
+    rsiChart.applyOptions(indiChartOptions());
+  }
+
+  function fitMainChart(){
+    mainChart.timeScale().fitContent();
+    mainChart.priceScale('right').fitContent();
+  }
+
+  mainChart.timeScale().subscribeVisibleLogicalRangeChange(range=>{
+    if(!range)return;
+    macdChart.timeScale().setVisibleLogicalRange(range);
+    rsiChart.timeScale().setVisibleLogicalRange(range);
+  });
+
+  function setStatus(msg){statusEl.textContent=msg||'';}
+
+  /* ====== Data / Live ====== */
+  let candleData   = [];
+  let currentData  = [];
+  let liveTimer    = null;
+  const CANDLE_LIMIT=3000;
+  const BATCH=1000;
+  const candleCache={}; // sym -> interval -> data[]
+
+  async function fetchKlines(sym,interval,endTime=null){
+    let url=`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=${interval}&limit=${BATCH}`;
+    if(endTime) url+=`&endTime=${endTime}`;
+    const res = await fetch(url);
+    const raw = await res.json();
+    if(!Array.isArray(raw)) throw new Error('binance error');
+    return raw;
+  }
+
+  async function loadHistory(symbol,interval){
+    const sym=symbol.toUpperCase();
+    setStatus('در حال دریافت '+sym+' ...');
+
+    if(candleCache[sym] && candleCache[sym][interval]){
+      candleData = candleCache[sym][interval].slice();
+    }else{
+      try{
+        const b1=await fetchKlines(sym,interval);
+        if(!b1.length){setStatus('دیتا یافت نشد');return;}
+        const e2=b1[0][0]-1;
+        const b2=await fetchKlines(sym,interval,e2);
+        const e3=b2.length?b2[0][0]-1:null;
+        const b3=e3?await fetchKlines(sym,interval,e3):[];
+        let combined=[...b3,...b2,...b1];
+        combined=combined.slice(-CANDLE_LIMIT);
+
+        candleData = combined.map(c=>({
+          time:c[0]/1000,
+          open:+c[1],
+          high:+c[2],
+          low:+c[3],
+          close:+c[4]
+        }));
+        if(!candleCache[sym]) candleCache[sym]={};
+        candleCache[sym][interval]=candleData.slice();
+      }catch(e){
+        console.error(e);
+        setStatus('خطا در دریافت دیتا (اینترنت یا بایننس)');
+        return;
+      }
+    }
+
+    currentData = candleData.slice();
+    candleSeries.setData(currentData);
+    computeIndicators();
+    fitMainChart();
+    setStatus('کندل‌ها: '+currentData.length);
+  }
+
+  async function fetchLastCandle(symbol,interval){
+    const sym=symbol.toUpperCase();
+    const url=`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=${interval}&limit=1`;
+    try{
+      const res=await fetch(url);
+      const raw=await res.json();
+      if(!Array.isArray(raw)||!raw.length)return;
+      const c=raw[0];
+      const candle={
+        time:c[0]/1000,
+        open:+c[1],high:+c[2],low:+c[3],close:+c[4]
+      };
+      if(candleData.length && candleData[candleData.length-1].time===candle.time){
+        candleData[candleData.length-1]=candle;
+      }else{
+        candleData.push(candle);
+        if(candleData.length>CANDLE_LIMIT) candleData.shift();
+      }
+      if(!isReplay){
+        currentData=candleData.slice();
+        candleSeries.setData(currentData);
+        computeIndicators();
+      }
+      const cacheSym=sym;
+      if(!candleCache[cacheSym]) candleCache[cacheSym]={};
+      candleCache[cacheSym][interval]=candleData.slice();
+    }catch(e){
+      console.error(e);
+    }
+  }
+
+  function startLive(symbol,interval){
+    if(liveTimer) clearInterval(liveTimer);
+    liveTimer=setInterval(()=>fetchLastCandle(symbol,interval),5000);
+  }
+  function stopLive(){
+    if(liveTimer) clearInterval(liveTimer);
+    liveTimer=null;
+  }
+
+  /* ====== MACD / RSI ====== */
+  function EMA(values,period){
+    const k=2/(period+1);
+    const out=[values[0]];
+    for(let i=1;i<values.length;i++){
+      out.push(values[i]*k+out[i-1]*(1-k));
+    }
+    return out;
+  }
+  function calcMACD(closes){
+    if(closes.length<50) return null;
+    const ema12=EMA(closes,12);
+    const ema26=EMA(closes,26);
+    const macd=ema12.map((v,i)=>v-ema26[i]);
+    const sigRaw=EMA(macd.slice(26),9);
+    const signal=Array(macd.length-sigRaw.length).fill(null).concat(sigRaw);
+    const hist=macd.map((m,i)=>signal[i]==null?null:m-signal[i]);
+    return {macd,signal,hist};
+  }
+  function calcRSI(closes,period=14){
+    if(closes.length<period+2) return [];
+    const gains=[],losses=[];
+    for(let i=1;i<closes.length;i++){
+      const d=closes[i]-closes[i-1];
+      gains.push(Math.max(d,0));
+      losses.push(Math.max(-d,0));
+    }
+    let avgGain=gains.slice(0,period).reduce((a,b)=>a+b,0)/period;
+    let avgLoss=losses.slice(0,period).reduce((a,b)=>a+b,0)/period;
+    const rsiArr=Array(period).fill(null);
+    let rs=avgLoss===0?0:avgGain/avgLoss;
+    rsiArr.push(avgLoss===0?100:(100-100/(1+rs)));
+    for(let i=period;i<gains.length;i++){
+      avgGain=(avgGain*(period-1)+gains[i])/period;
+      avgLoss=(avgLoss*(period-1)+losses[i])/period;
+      if(avgLoss===0){rsiArr.push(100);continue;}
+      rs=avgGain/avgLoss;
+      rsiArr.push(100-100/(1+rs));
+    }
+    return rsiArr;
+  }
+
+  function computeIndicators(){
+    const closes=currentData.map(c=>c.close);
+    const times =currentData.map(c=>c.time);
+
+    const macdRes=calcMACD(closes);
+    if(macdRes){
+      const macdData=[],sigData=[],histData=[];
+      for(let i=0;i<times.length;i++){
+        if(macdRes.macd[i]==null) continue;
+        macdData.push({time:times[i],value:macdRes.macd[i]});
+        sigData.push({time:times[i],value:macdRes.signal[i]});
+        histData.push({time:times[i],value:macdRes.hist[i]});
+      }
+      macdLine.setData(macdData);
+      macdSignal.setData(sigData);
+      macdHist.setData(histData);
+    }
+
+    const rsiVals=calcRSI(closes);
+    const rsiData=[];
+    for(let i=0;i<times.length;i++){
+      if(rsiVals[i]==null) continue;
+      rsiData.push({time:times[i],value:rsiVals[i]});
+    }
+    rsiLine.setData(rsiData);
+  }
+
+  function resizeIndicators(){
+    if(macdChk.checked){
+      macdDiv.style.display='block';
+      macdChart.resize(macdDiv.clientWidth,macdDiv.clientHeight);
+    }else{
+      macdDiv.style.display='none';
+    }
+    if(rsiChk.checked){
+      rsiDiv.style.display='block';
+      rsiChart.resize(rsiDiv.clientWidth,rsiDiv.clientHeight);
+    }else{
+      rsiDiv.style.display='none';
+    }
+  }
+  function updateIndicatorVisibility(){
+    resizeIndicators();
+  }
+  macdChk.addEventListener('change',updateIndicatorVisibility);
+  rsiChk.addEventListener('change',updateIndicatorVisibility);
+
+  indiMenuBtn.addEventListener('click',()=>{
+    indiMenu.style.display = indiMenu.style.display==='flex' ? 'none' : 'flex';
+  });
+
+  /* ====== ابزارهای تحلیلی ====== */
+  const Tools={NONE:'none',HLINE:'hline',TREND:'trend',BOX:'box',FIB:'fib',RULER:'ruler'};
+  let activeTool=Tools.NONE;
+  let tempPoint=null;
+  const drawings=[];
+
+  toolMenuBtn.addEventListener('click',()=>{
+    toolMenu.style.display = toolMenu.style.display==='flex' ? 'none' : 'flex';
+  });
+  toolIcons.forEach(icon=>{
+    icon.addEventListener('click',()=>{
+      toolIcons.forEach(i=>i.classList.remove('active'));
+      icon.classList.add('active');
+      activeTool=icon.getAttribute('data-tool');
+      if(activeTool===Tools.NONE) tempPoint=null;
+    });
+  });
+
+  function createLineSeries(options){
+    return mainChart.addLineSeries(Object.assign({
+      color:'#e5e7eb',
+      lineWidth:1,
+      priceLineVisible:false,
+      crosshairMarkerVisible:false,
+    },options||{}));
+  }
+  function priceFromY(y){return candleSeries.coordinateToPrice(y);}
+
+  mainChart.subscribeClick(param=>{
+    if(isReplay && activeTool===Tools.NONE && param.time){
+      // اگر در ریپلی بودی و ابزار انتخاب است: کلیک = پرش به آن نقطه
+      const t=param.time;
+      const idx=currentData.findIndex(c=>c.time>=t);
+      if(idx>10){ setReplayIndex(idx); }
+      return;
+    }
+    if(!param.time || !param.point) return;
+    const t=param.time;
+    const p=priceFromY(param.point.y);
+    if(p==null || activeTool===Tools.NONE) return;
+
+    if(activeTool===Tools.HLINE){
+      const s=createLineSeries({color:'#facc15',lineWidth:2});
+      s.setData([
+        {time:t-60*60*24*90,value:p},
+        {time:t+60*60*24*90,value:p},
+      ]);
+      drawings.push(s);
+    }else if(activeTool===Tools.TREND){
+      if(!tempPoint){
+        tempPoint={time:t,price:p};
+      }else{
+        const s=createLineSeries({color:'#fb923c',lineWidth:2});
+        s.setData([
+          {time:tempPoint.time,value:tempPoint.price},
+          {time:t,value:p},
+        ]);
+        drawings.push(s);
+        tempPoint=null;
+      }
+    }else if(activeTool===Tools.BOX){
+      if(!tempPoint){
+        tempPoint={time:t,price:p};
+      }else{
+        const t1=tempPoint.time,p1=tempPoint.price;
+        const t2=t,p2=p;
+        const left=Math.min(t1,t2),right=Math.max(t1,t2);
+        const top=Math.max(p1,p2),bot=Math.min(p1,p2);
+        const topL=createLineSeries({color:'#22c55e'});
+        const botL=createLineSeries({color:'#22c55e'});
+        const leftL=createLineSeries({color:'#22c55e'});
+        const rightL=createLineSeries({color:'#22c55e'});
+        topL.setData([{time:left,value:top},{time:right,value:top}]);
+        botL.setData([{time:left,value:bot},{time:right,value:bot}]);
+        leftL.setData([{time:left,value:bot},{time:left,value:top}]);
+        rightL.setData([{time:right,value:bot},{time:right,value:top}]);
+        drawings.push(topL,botL,leftL,rightL);
+        tempPoint=null;
+      }
+    }else if(activeTool===Tools.FIB){
+      if(!tempPoint){
+        tempPoint={time:t,price:p};
+      }else{
+        const t1=tempPoint.time,p1=tempPoint.price;
+        const t2=t,p2=p;
+        const left=Math.min(t1,t2),right=Math.max(t1,t2);
+        const high=p2>p1?p2:p1, low=p2>p1?p1:p2;
+        const diff=high-low;
+        const levels=[0,0.236,0.382,0.5,0.618,0.786,1];
+        const colors=['#ef4444','#fb923c','#eab308','#22c55e','#22c55e','#a855f7','#0ea5e9'];
+        levels.forEach((lvl,i)=>{
+          const price=p2>p1?high-diff*lvl:low+diff*lvl;
+          const s=createLineSeries({color:colors[i],lineWidth:1});
+          s.setData([{time:left,value:price},{time:right,value:price}]);
+          drawings.push(s);
+        });
+        tempPoint=null;
+      }
+    }else if(activeTool===Tools.RULER){
+      if(!tempPoint){
+        tempPoint={time:t,price:p};
+      }else{
+        const t1=tempPoint.time,p1=tempPoint.price;
+        const t2=t,p2=p;
+        const s=createLineSeries({
+          color:'#e5e7eb',
+          lineWidth:2,
+          lineStyle:LightweightCharts.LineStyle.Dashed,
+        });
+        s.setData([{time:t1,value:p1},{time:t2,value:p2}]);
+        const diff=p2-p1;
+        const percent=(diff/p1)*100;
+        setStatus(`ΔP=${diff.toFixed(2)} | Δ%=${percent.toFixed(2)}%`);
+        drawings.push(s);
+        tempPoint=null;
+      }
+    }
+  });
+
+  /* ====== Watchlist ====== */
+  let watchlist=['BTCUSDT','ETHUSDT','BNBUSDT'];
+  function renderWatchlist(){
+    watchItems.innerHTML='';
+    watchlist.forEach(sym=>{
+      const row=document.createElement('div');
+      row.className='watch-item';
+      const t=document.createElement('span');t.textContent=sym;
+      const x=document.createElement('span');x.textContent='✕';
+      row.appendChild(t);row.appendChild(x);
+      t.addEventListener('click',()=>{
+        symbolInput.value=sym;
+        loadChart();
+      });
+      x.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        watchlist=watchlist.filter(s=>s!==sym);
+        renderWatchlist();
+      });
+      watchItems.appendChild(row);
+    });
+  }
+  renderWatchlist();
+
+  watchAddBtn.addEventListener('click',()=>{
+    const sym=watchAddInput.value.trim().toUpperCase();
+    if(sym && !watchlist.includes(sym)){
+      watchlist.push(sym);
+      renderWatchlist();
+    }
+    watchAddInput.value='';
+  });
+  watchAddInput.addEventListener('keydown',e=>{
+    if(e.key==='Enter') watchAddBtn.click();
+  });
+
+  let watchCollapsed=false;
+  watchToggle.addEventListener('click',()=>{
+    watchCollapsed=!watchCollapsed;
+    watchPanel.classList.toggle('collapsed',watchCollapsed);
+    watchToggle.textContent=watchCollapsed?'⟩':'⟨';
+    setTimeout(()=>{mainChart.resize(mainChartDiv.clientWidth,mainChartDiv.clientHeight);fitMainChart();},300);
+  });
+
+  /* ====== Replay + Slider ====== */
+  let isReplay=false;
+  let replayData=[];
+  let replayIndex=0;
+  let replayTimer=null;
+  let replaySpeed=1;
+
+  function setReplayIndex(idx){
+    if(!replayData.length)return;
+    replayIndex=Math.min(Math.max(idx,10),replayData.length);
+    currentData=replayData.slice(0,replayIndex);
+    candleSeries.setData(currentData);
+    computeIndicators();
+    fitMainChart();
+    rpRange.value=replayIndex;
+    updateDemoPNL();
+  }
+
+  function enterReplay(){
+    if(!candleData.length){alert('اول چارت را لود کن');return;}
+    isReplay=true;
+    stopLive();
+    replayData=candleData.slice();
+    replayIndex=Math.max(30,replayData.length-300);
+    rpRange.min=10;
+    rpRange.max=replayData.length;
+    rpRange.value=replayIndex;
+    setReplayIndex(replayIndex);
+    replayPanel.style.display='flex';
+    setStatus('Replay فعال است');
+  }
+  function exitReplay(){
+    isReplay=false;
+    replayPanel.style.display='none';
+    if(replayTimer){clearInterval(replayTimer);replayTimer=null;}
+    replayData=[];
+    replayIndex=0;
+    loadChart();
+    setStatus('');
+  }
+  function stepForward(){
+    if(!isReplay)return;
+    if(replayIndex>=replayData.length)return;
+    setReplayIndex(replayIndex+1);
+  }
+  function stepBack(){
+    if(!isReplay)return;
+    setReplayIndex(replayIndex-1);
+  }
+  function startReplayAuto(){
+    if(replayTimer) clearInterval(replayTimer);
+    replayTimer=setInterval(()=>{
+      stepForward();
+      if(replayIndex>=replayData.length){
+        clearInterval(replayTimer);
+        replayTimer=null;
+      }
+    },600/replaySpeed);
+  }
+  function stopReplayAuto(){
+    if(replayTimer){clearInterval(replayTimer);replayTimer=null;}
+  }
+
+  replayBtn.addEventListener('click',enterReplay);
+  rpExit .addEventListener('click',()=>{stopReplayAuto();exitReplay();});
+  rpBack .addEventListener('click',stepBack);
+  rpNext .addEventListener('click',stepForward);
+  rpPlay .addEventListener('click',startReplayAuto);
+  rpPause.addEventListener('click',stopReplayAuto);
+  rpSpeed.addEventListener('change',()=>{replaySpeed=+rpSpeed.value||1;});
+  rpRange.addEventListener('input',()=>{if(isReplay)setReplayIndex(+rpRange.value);});
+
+  /* ====== Demo Live + Replay ====== */
+  let demoMode='none'; // live | replay | none
+  const demoState={
+    live:{balance:10000,position:null,trades:[]},
+    replay:{balance:10000,position:null,trades:[]},
+  };
+
+  function getCurrentPrice(mode){
+    if(mode==='replay'){
+      if(!isReplay || !replayData.length || replayIndex===0) return null;
+      return replayData[replayIndex-1].close;
+    }
+    if(mode==='live'){
+      if(!candleData.length) return null;
+      return candleData[candleData.length-1].close;
+    }
+    return null;
+  }
+
+  function renderDemo(){
+    if(demoMode==='none'){
+      demoPanel.style.display='none';
+      demoModeTitle.textContent='خاموش';
+      return;
+    }
+    demoPanel.style.display='block';
+    demoModeTitle.textContent = demoMode==='live'?'Live':'Replay';
+    const st=demoState[demoMode];
+    demoBalanceEl.textContent='$'+st.balance.toFixed(2);
+    if(st.position){
+      demoPositionEl.textContent=(st.position.side==='long'?'Long':'Short')+' @ '+st.position.entry.toFixed(2);
+    }else{
+      demoPositionEl.textContent='ندارد';
+    }
+    demoTradesEl.innerHTML='';
+    st.trades.slice().reverse().forEach(tr=>{
+      const div=document.createElement('div');
+      div.textContent=`${tr.side.toUpperCase()} | entry: ${tr.entry.toFixed(2)} exit: ${tr.exit.toFixed(2)} PNL: ${tr.profit.toFixed(2)}`;
+      demoTradesEl.appendChild(div);
+    });
+    updateDemoPNL();
+  }
+
+  function updateDemoPNL(){
+    if(demoMode==='none'){demoPNLEl.textContent='0';return;}
+    const st=demoState[demoMode];
+    if(!st.position){demoPNLEl.textContent='0';return;}
+    const price=getCurrentPrice(demoMode);
+    if(price==null){demoPNLEl.textContent='0';return;}
+    const diff=(price-st.position.entry)*(st.position.side==='long'?1:-1)*st.position.size;
+    demoPNLEl.textContent=diff.toFixed(2);
+  }
+
+  demoLiveBtn.addEventListener('click',()=>{
+    demoMode = demoMode==='live' ? 'none' : 'live';
+    renderDemo();
+  });
+  demoReplayBtn.addEventListener('click',()=>{
+    if(demoMode!=='replay'){
+      if(!isReplay) enterReplay();
+      demoMode='replay';
+    }else{
+      demoMode='none';
+    }
+    renderDemo();
+  });
+  demoClose.addEventListener('click',()=>{demoMode='none';renderDemo();});
+
+  demoBuy.addEventListener('click',()=>{
+    if(demoMode==='none'){alert('اول یکی از دموها را فعال کن');return;}
+    const st=demoState[demoMode];
+    if(st.position){alert('اول پوزیشن فعلی را ببند');return;}
+    const price=getCurrentPrice(demoMode);
+    if(price==null){alert('قیمت در دسترس نیست');return;}
+    st.position={side:'long',entry:price,size:1};
+    renderDemo();
+  });
+  demoSell.addEventListener('click',()=>{
+    if(demoMode==='none'){alert('اول یکی از دموها را فعال کن');return;}
+    const st=demoState[demoMode];
+    if(st.position){alert('اول پوزیشن فعلی را ببند');return;}
+    const price=getCurrentPrice(demoMode);
+    if(price==null){alert('قیمت در دسترس نیست');return;}
+    st.position={side:'short',entry:price,size:1};
+    renderDemo();
+  });
+  demoClosePos.addEventListener('click',()=>{
+    if(demoMode==='none')return;
+    const st=demoState[demoMode];
+    if(!st.position)return;
+    const price=getCurrentPrice(demoMode);
+    if(price==null)return;
+    const profit=(price-st.position.entry)*(st.position.side==='long'?1:-1)*st.position.size;
+    st.balance+=profit;
+    st.trades.push({side:st.position.side,entry:st.position.entry,exit:price,profit});
+    st.position=null;
+    renderDemo();
+  });
+
+  /* ====== Multi-chart floating windows ====== */
+  let multiActive=false;
+  let multiWindows=[];
+  let multiTopZ=90;
+
+  function destroyMulti(){
+    multiOverlay.innerHTML='';
+    multiOverlay.style.display='none';
+    multiWindows.forEach(w=>w.chart.remove());
+    multiWindows=[];
+  }
+
+  async function loadMiniSymbol(sym,chart,series){
+    sym=sym.toUpperCase();
+    if(!sym)return;
+    const interval=intervalInput.value;
+    try{
+      const url=`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=${interval}&limit=500`;
+      const res=await fetch(url);
+      const raw=await res.json();
+      if(!Array.isArray(raw)||!raw.length)return;
+      const data=raw.map(c=>({
+        time:c[0]/1000,
+        open:+c[1],
+        high:+c[2],
+        low:+c[3],
+        close:+c[4]
+      }));
+      series.setData(data);
+      chart.timeScale().fitContent();
+      chart.priceScale('right').fitContent();
+    }catch(e){
+      console.error(e);
+    }
+  }
+
+  function resizeMini(win,header,body,chart){
+    const h=win.clientHeight-header.offsetHeight;
+    const w=win.clientWidth;
+    body.style.height=h+'px';
+    chart.resize(w,h);
+  }
+
+  function createMiniWindow(initialSym,x,y){
+    const win=document.createElement('div');
+    win.className='mini-window';
+    win.style.left=x+'px';
+    win.style.top =y+'px';
+
+    const header=document.createElement('div');
+    header.className='mini-header';
+
+    const title=document.createElement('div');
+    title.className='mini-title';
+    const symInput=document.createElement('input');
+    symInput.className='mini-symbol';
+    symInput.value=initialSym;
+    const reload=document.createElement('span');
+    reload.textContent='⟲';
+    reload.style.cursor='pointer';
+    title.appendChild(symInput);
+    title.appendChild(reload);
+
+    const close=document.createElement('span');
+    close.textContent='✕';
+    close.style.cursor='pointer';
+
+    header.appendChild(title);
+    header.appendChild(close);
+
+    const body=document.createElement('div');
+    body.style.width='100%';
+    body.style.height='calc(100% - 24px)';
+
+    const resizeHandle=document.createElement('div');
+    resizeHandle.className='mini-resize';
+
+    win.appendChild(header);
+    win.appendChild(body);
+    win.appendChild(resizeHandle);
+    multiOverlay.appendChild(win);
+
+    const chart=LightweightCharts.createChart(body,baseChartOptions());
+    const s=chart.addCandlestickSeries({
+      upColor:'#22c55e',downColor:'#ef4444',
+      borderUpColor:'#22c55e',borderDownColor:'#ef4444',
+      wickUpColor:'#22c55e',wickDownColor:'#ef4444'
+    });
+
+    resizeMini(win,header,body,chart);
+    loadMiniSymbol(initialSym,chart,s);
+
+    // drag
+    let dragging=false,dx=0,dy=0;
+    header.addEventListener('mousedown',e=>{
+      dragging=true;
+      multiTopZ++;
+      win.style.zIndex=multiTopZ;
+      const rect=win.getBoundingClientRect();
+      dx=e.clientX-rect.left;
+      dy=e.clientY-rect.top;
+    });
+    document.addEventListener('mousemove',e=>{
+      if(!dragging)return;
+      win.style.left=(e.clientX-dx)+'px';
+      win.style.top =(e.clientY-dy)+'px';
+    });
+    document.addEventListener('mouseup',()=>{dragging=false;});
+
+    // resize
+    let resizing=false,sx=0,sy=0,startW=0,startH=0;
+    resizeHandle.addEventListener('mousedown',e=>{
+      resizing=true;
+      const rect=win.getBoundingClientRect();
+      startW=rect.width;
+      startH=rect.height;
+      sx=e.clientX;sy=e.clientY;
+    });
+    document.addEventListener('mousemove',e=>{
+      if(!resizing)return;
+      let newW=startW+(e.clientX-sx);
+      let newH=startH+(e.clientY-sy);
+      if(newW<180)newW=180;
+      if(newH<120)newH=120;
+      win.style.width=newW+'px';
+      win.style.height=newH+'px';
+      resizeMini(win,header,body,chart);
+    });
+    document.addEventListener('mouseup',()=>{resizing=false;});
+
+    close.addEventListener('click',()=>{
+      chart.remove();
+      win.remove();
+    });
+
+    reload.addEventListener('click',()=>{
+      loadMiniSymbol(symInput.value,chart,s);
+    });
+    symInput.addEventListener('keydown',e=>{
+      if(e.key==='Enter') loadMiniSymbol(symInput.value,chart,s);
+    });
+
+    multiWindows.push({win,chart,series:s,input:symInput});
+  }
+
+  multiBtn.addEventListener('click',()=>{
+    multiActive=!multiActive;
+    if(!multiActive){destroyMulti();return;}
+    multiOverlay.style.display='block';
+    let x=30,y=40;
+    const baseSym=symbolInput.value.toUpperCase();
+    const syms=[baseSym].concat(watchlist.filter(s=>s!==baseSym)).slice(0,4);
+    syms.forEach(sym=>{
+      createMiniWindow(sym,x,y);
+      x+=280;
+      if(x>window.innerWidth-300){
+        x=30;
+        y+=190;
+      }
+    });
+  });
+
+  /* ====== Load main chart ====== */
+  async function loadChart(){
+    const sym=symbolInput.value.trim().toUpperCase();
+    const interval=intervalInput.value;
+    if(!sym)return;
+    stopLive();
+    await loadHistory(sym,interval);
+    if(!isReplay) startLive(sym,interval);
+    resizeIndicators();
+  }
+
+  reloadBtn.addEventListener('click',loadChart);
+  symbolInput.addEventListener('keydown',e=>{if(e.key==='Enter') loadChart();});
+  intervalInput.addEventListener('change',loadChart);
+
+  /* ====== Start ====== */
+  loadChart();
+  renderDemo();
+</script>
+</body>
+</html>
